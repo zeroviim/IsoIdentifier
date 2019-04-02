@@ -1,0 +1,9 @@
+c:\users\michael\documents\visual studio 2017\Projects\ISOIdentifier\ISOIdentifier\bin\Debug\ISOIdentifier.exe.config
+c:\users\michael\documents\visual studio 2017\Projects\ISOIdentifier\ISOIdentifier\bin\Debug\ISOIdentifier.exe
+c:\users\michael\documents\visual studio 2017\Projects\ISOIdentifier\ISOIdentifier\bin\Debug\ISOIdentifier.pdb
+c:\users\michael\documents\visual studio 2017\Projects\ISOIdentifier\ISOIdentifier\obj\Debug\ISOIdentifier.csprojResolveAssemblyReference.cache
+c:\users\michael\documents\visual studio 2017\Projects\ISOIdentifier\ISOIdentifier\obj\Debug\ISOIdentifier.Form1.resources
+c:\users\michael\documents\visual studio 2017\Projects\ISOIdentifier\ISOIdentifier\obj\Debug\ISOIdentifier.Properties.Resources.resources
+c:\users\michael\documents\visual studio 2017\Projects\ISOIdentifier\ISOIdentifier\obj\Debug\ISOIdentifier.csproj.GenerateResource.Cache
+c:\users\michael\documents\visual studio 2017\Projects\ISOIdentifier\ISOIdentifier\obj\Debug\ISOIdentifier.exe
+c:\users\michael\documents\visual studio 2017\Projects\ISOIdentifier\ISOIdentifier\obj\Debug\ISOIdentifier.pdb
