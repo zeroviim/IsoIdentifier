@@ -31,6 +31,7 @@
             this.btn_Open = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.lsbx_Sector16 = new System.Windows.Forms.ListBox();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.SuspendLayout();
             // 
             // btn_Open
@@ -46,7 +47,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(124, 28);
+            this.label1.Location = new System.Drawing.Point(473, 214);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(108, 13);
             this.label1.TabIndex = 1;
@@ -55,16 +56,26 @@
             // lsbx_Sector16
             // 
             this.lsbx_Sector16.FormattingEnabled = true;
-            this.lsbx_Sector16.Location = new System.Drawing.Point(127, 44);
+            this.lsbx_Sector16.Location = new System.Drawing.Point(476, 230);
             this.lsbx_Sector16.Name = "lsbx_Sector16";
             this.lsbx_Sector16.Size = new System.Drawing.Size(185, 147);
             this.lsbx_Sector16.TabIndex = 2;
+            // 
+            // groupBox1
+            // 
+            this.groupBox1.Location = new System.Drawing.Point(114, 44);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(192, 283);
+            this.groupBox1.TabIndex = 3;
+            this.groupBox1.TabStop = false;
+            this.groupBox1.Text = "groupBox1";
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(751, 483);
+            this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.lsbx_Sector16);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.btn_Open);
@@ -80,6 +91,7 @@
         private System.Windows.Forms.Button btn_Open;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.ListBox lsbx_Sector16;
+        private System.Windows.Forms.GroupBox groupBox1;
     }
 }
 
