@@ -23,10 +23,8 @@ namespace ISOIdentifier
         {
             BinaryReader rom = new BinaryReader(File.OpenRead(romLocation));
             BigDataExtract(rom, out string[] sector16Info);
-            for (int i = 0; i < sector16Info.Length; i++)
-            {
-                lsbx_Sector16.Items.Add(sector16Info[i].ToString());
-            }
+            lsbx_Sector16.Items.Add(sector16Info[0].ToString());
+            lsbx_Sector16.Items.Add(sector16Info[1]);
         }
 
         private void BigDataExtract(BinaryReader rom, out string[] sector16Info)
@@ -40,7 +38,7 @@ namespace ISOIdentifier
             //string pulling
             romPosition = 0x9319; //standard identifier
             infoLength = 5;
-            ReadIsoString(rom, romPosition, infoLength, out information);
+            ReadIso(rom, romPosition, infoLength, out information);
             methodInformation.Add(information);
             romPosition += infoLength;
             infoLength = 1;
@@ -51,13 +49,19 @@ namespace ISOIdentifier
             sector16Info = methodInformation.ToArray();
         }
 
-        private void ReadIsoString(BinaryReader rom, int romPosition, int infoLength, out string information)
+        private void ReadIso(BinaryReader rom, int romPosition, int infoLength, out string information)
         {
             rom.BaseStream.Position = romPosition;
             char[] output = rom.ReadChars(infoLength);
             information = new string(output);
         }
 
+        private void ListBoxAdding(string[] information)
+        {
+            lsbx_Sector16.Items.Add(string.Format("Std ID:{0}", information[0]));
+            byte info = (byte)(information[1]);
+            lsbx_Sector16.Items.Add(string.Format("Vol Desc Ver:{0}", information[1].ToString("X2")));
+        }
         //private void Export()
         //{
         //  write Region:{0}, sector16Info[0].tostriong, etc
@@ -79,5 +83,13 @@ namespace ISOIdentifier
 
         //first 00 02 00 02 (0C-0F at start of sector)
         //max 26 30 29 02 may be 119129 not 119130(last sector according to hxd)
+        public interface isoInformationList { }
+        public class isoInformation : isoInformationList
+        {
+            public byte VolDescType;
+            public string stdID;
+            public byte VolDescVer;
+
+        }
     }
 }
