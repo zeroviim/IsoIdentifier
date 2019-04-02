@@ -22,6 +22,10 @@ namespace ISOIdentifier
         public Form1()
         {
             InitializeComponent();
+            lbl_BinLocation.Text = romLocation;
+            lbl_BinLocation.Text = Properties.Settings.Default.romPath;
+            lbl_OutputLocation.Text = outputLocation;
+            lbl_OutputLocation.Text = Properties.Settings.Default.outputPath;
         }
 
         private void btn_Open_Click(object sender, EventArgs e)
@@ -29,6 +33,21 @@ namespace ISOIdentifier
             BinaryReader rom = new BinaryReader(File.OpenRead(romLocation));
             BigDataExtract(rom, out string[] sector16Info);
             Export(sector16Info);
+        }
+
+        private void btn_BinLocation_Click(object sender, EventArgs e)
+        {
+            //todo: file browser to pull location of bin picked by user and store in a string
+        }
+
+        private void btn_Output_Click(object sender, EventArgs e)
+        {
+            //todo: file browser to pull location of output text file picked by user and store in a string
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            Properties.Settings.Default.Save();
         }
 
         private void BigDataExtract(BinaryReader rom, out string[] sector16Info)
@@ -98,5 +117,7 @@ namespace ISOIdentifier
             public byte VolDescVer;
 
         }
+
+
     }
 }

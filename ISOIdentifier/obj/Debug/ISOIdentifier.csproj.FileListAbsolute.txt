@@ -7,3 +7,13 @@ c:\users\michael\documents\visual studio 2017\Projects\ISOIdentifier\ISOIdentifi
 c:\users\michael\documents\visual studio 2017\Projects\ISOIdentifier\ISOIdentifier\obj\Debug\ISOIdentifier.csproj.GenerateResource.Cache
 c:\users\michael\documents\visual studio 2017\Projects\ISOIdentifier\ISOIdentifier\obj\Debug\ISOIdentifier.exe
 c:\users\michael\documents\visual studio 2017\Projects\ISOIdentifier\ISOIdentifier\obj\Debug\ISOIdentifier.pdb
+C:\Users\mcapi\Downloads\IsoIdentifier-master\ISOIdentifier\bin\Debug\ISOIdentifier.exe.config
+C:\Users\mcapi\Downloads\IsoIdentifier-master\ISOIdentifier\bin\Debug\ISOIdentifier.exe
+C:\Users\mcapi\Downloads\IsoIdentifier-master\ISOIdentifier\bin\Debug\ISOIdentifier.pdb
+C:\Users\mcapi\Downloads\IsoIdentifier-master\ISOIdentifier\obj\Debug\ISOIdentifier.csprojAssemblyReference.cache
+C:\Users\mcapi\Downloads\IsoIdentifier-master\ISOIdentifier\obj\Debug\ISOIdentifier.Form1.resources
+C:\Users\mcapi\Downloads\IsoIdentifier-master\ISOIdentifier\obj\Debug\ISOIdentifier.Properties.Resources.resources
+C:\Users\mcapi\Downloads\IsoIdentifier-master\ISOIdentifier\obj\Debug\ISOIdentifier.csproj.GenerateResource.cache
+C:\Users\mcapi\Downloads\IsoIdentifier-master\ISOIdentifier\obj\Debug\ISOIdentifier.csproj.CoreCompileInputs.cache
+C:\Users\mcapi\Downloads\IsoIdentifier-master\ISOIdentifier\obj\Debug\ISOIdentifier.exe
+C:\Users\mcapi\Downloads\IsoIdentifier-master\ISOIdentifier\obj\Debug\ISOIdentifier.pdb
