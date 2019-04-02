@@ -38,6 +38,7 @@
             this.lbl_desc_OutputLocation = new System.Windows.Forms.Label();
             this.btn_BinLocation = new System.Windows.Forms.Button();
             this.btn_Output = new System.Windows.Forms.Button();
+            this.fbd_Output = new System.Windows.Forms.FolderBrowserDialog();
             this.SuspendLayout();
             // 
             // btn_Open
@@ -150,7 +151,7 @@
             this.Controls.Add(this.label1);
             this.Controls.Add(this.btn_Open);
             this.Name = "Form1";
-            this.Text = "Form1";
+            this.Text = "PSX Iso Identifier";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -169,6 +170,7 @@
         private System.Windows.Forms.Label lbl_desc_OutputLocation;
         private System.Windows.Forms.Button btn_BinLocation;
         private System.Windows.Forms.Button btn_Output;
+        private System.Windows.Forms.FolderBrowserDialog fbd_Output;
     }
 }
 

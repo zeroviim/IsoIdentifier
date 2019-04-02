@@ -13,24 +13,16 @@ namespace ISOIdentifier
 {
     public partial class Form1 : Form
     {
-        //string romLocation = @"C:\Users\Michael\Documents\Tomba stuff\Tomba! (USA).bin";
-        //TODO: make these settings that I can change on the form itself
-        //TODO: for testing, delete
-        string romLocation = @"C:\Users\mcapi\Downloads\IsoIdentifier-master\DataFiles\FakeSectorTest.bin";
-        string outputLocation = @"C:\Users\mcapi\Downloads\IsoIdentifier-master\DataFiles\Iso_Info_Output.txt";
 
         public Form1()
         {
             InitializeComponent();
-            lbl_BinLocation.Text = romLocation;
-            lbl_BinLocation.Text = Properties.Settings.Default.romPath;
-            lbl_OutputLocation.Text = outputLocation;
-            lbl_OutputLocation.Text = Properties.Settings.Default.outputPath;
+            UpdateFilePaths();
         }
 
         private void btn_Open_Click(object sender, EventArgs e)
         {
-            BinaryReader rom = new BinaryReader(File.OpenRead(romLocation));
+            BinaryReader rom = new BinaryReader(File.OpenRead(Properties.Settings.Default.romPath));
             BigDataExtract(rom, out string[] sector16Info);
             Export(sector16Info);
         }
@@ -38,16 +30,30 @@ namespace ISOIdentifier
         private void btn_BinLocation_Click(object sender, EventArgs e)
         {
             //todo: file browser to pull location of bin picked by user and store in a string
+            OpenFileDialog binLocationPicker;
+            binLocationPicker = new OpenFileDialog();
+            binLocationPicker.ShowDialog();
+            Properties.Settings.Default.romPath = binLocationPicker.FileName;
+            UpdateFilePaths();
         }
 
         private void btn_Output_Click(object sender, EventArgs e)
         {
-            //todo: file browser to pull location of output text file picked by user and store in a string
+            //TODO: folder browser dialog sucks, figure out if we can use a better version somewhere in c# more alike the openfiledialog
+            fbd_Output.ShowDialog();
+            Properties.Settings.Default.outputPath = fbd_Output.SelectedPath + @"\Iso_Info_Output.txt";
+            UpdateFilePaths();
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             Properties.Settings.Default.Save();
+        }
+
+        private void UpdateFilePaths()
+        {
+            lbl_BinLocation.Text = Properties.Settings.Default.romPath;
+            lbl_OutputLocation.Text = Properties.Settings.Default.outputPath;
         }
 
         private void BigDataExtract(BinaryReader rom, out string[] sector16Info)
@@ -69,6 +75,7 @@ namespace ISOIdentifier
             infoLength = 1;
             ReadIso(rom, romPosition, infoLength, out information);
             methodInformation.Add(information);
+            //TODO: more information
             
             //assigning list to out array
             sector16Info = methodInformation.ToArray();
@@ -83,10 +90,11 @@ namespace ISOIdentifier
 
         private void Export(string[] information)
         {
-            StreamWriter output = new StreamWriter(outputLocation);
+            StreamWriter output = new StreamWriter(Properties.Settings.Default.outputPath);
             output.WriteLine(string.Format("Standard ID: {0}", information[0]));
             byte[] version = Encoding.ASCII.GetBytes(information[1]);
             output.WriteLine(string.Format("Volume Description Version: {0:X2}", version[0]));
+            //TODO: a lot more of this
             output.Close();
         }
 
