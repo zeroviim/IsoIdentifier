@@ -13,7 +13,6 @@ namespace ISOIdentifier
 {
     public partial class Form1 : Form
     {
-        //Open sector file as cd sector size 2352
         public Form1()
         {
             InitializeComponent();
@@ -23,25 +22,34 @@ namespace ISOIdentifier
         private void btn_Open_Click(object sender, EventArgs e)
         {
             BinaryReader rom = new BinaryReader(File.OpenRead(Properties.Settings.Default.romPath));
-            Sector16Extract(rom, out string[] sector16Info);
-            Export(sector16Info);
+            Sector16 Sector16 = new Sector16();
+            Sector16Extract(rom, Sector16);
         }
 
         private void btn_BinLocation_Click(object sender, EventArgs e)
         {
-            //todo: file browser to pull location of bin picked by user and store in a string
             OpenFileDialog binLocationPicker;
             binLocationPicker = new OpenFileDialog();
-            binLocationPicker.ShowDialog();
-            Properties.Settings.Default.romPath = binLocationPicker.FileName;
+            DialogResult result = new DialogResult();
+            result = binLocationPicker.ShowDialog();
+            if (result == DialogResult.OK)
+            {
+                Properties.Settings.Default.romPath = binLocationPicker.FileName;
+                Properties.Settings.Default.Save();
+            }
             UpdateFilePaths();
         }
 
         private void btn_Output_Click(object sender, EventArgs e)
         {
             //TODO: folder browser dialog sucks, figure out if we can use a better version somewhere in c# more alike the openfiledialog
-            fbd_Output.ShowDialog();
-            Properties.Settings.Default.outputPath = fbd_Output.SelectedPath + @"\Iso_Info_Output.txt";
+            DialogResult result = new DialogResult();
+            result = fbd_Output.ShowDialog();
+            if (result == DialogResult.OK)
+            {
+                Properties.Settings.Default.outputPath = fbd_Output.SelectedPath + @"\Iso_Info_Output.txt";
+                Properties.Settings.Default.Save();
+            }
             UpdateFilePaths();
         }
 
@@ -56,63 +64,103 @@ namespace ISOIdentifier
             lbl_OutputLocation.Text = Properties.Settings.Default.outputPath;
         }
 
-        private void Sector16Extract(BinaryReader rom, out string[] sector16Info)
+        private void Sector16Extract(BinaryReader rom, Sector16 sector16)
         {
             //starting variables
             List<string> methodInformation = new List<string>();
             int romPosition = 0x9300;
-            string information = "";
+            byte[] byteInfo;
             int infoLength = 0;
 
             //string pulling
-            romPosition += 0x19; //standard identifier
+            romPosition += 0x18;//volume descriptor type
+            infoLength = 1;
+            ReadIso(rom, romPosition, infoLength, out byteInfo);
+            sector16.VolDescType = byteInfo[0];
+            romPosition++; //standard identifier
             infoLength = 5;
-            ReadIso(rom, romPosition, infoLength, out information);
-            methodInformation.Add(information);
+            ReadIso(rom, romPosition, infoLength, out byteInfo);
+            sector16.stdID = ByteConvertString(byteInfo);
             romPosition += infoLength; //volume descriptor version
             infoLength = 1;
-            ReadIso(rom, romPosition, infoLength, out information);
-            methodInformation.Add(information);
-            romPosition += 2; // system identifier
+            ReadIso(rom, romPosition, infoLength, out byteInfo);
+            sector16.VolDescVer = byteInfo[0];
+            romPosition += 2; //system identifier
             infoLength = 32;
-            ReadIso(rom, romPosition, infoLength, out information);
-            methodInformation.Add(information);
-            romPosition += infoLength;//volume indentifier?
-            ReadIso(rom, romPosition, infoLength, out information);
-            methodInformation.Add(information);
-            romPosition += infoLength + 8;
-            infoLength = 8;
-            ReadIso(rom, romPosition, infoLength, out information);
-            methodInformation.Add(information);
+            ReadIso(rom, romPosition, infoLength, out byteInfo);
+            sector16.SysID = ByteConvertString(byteInfo);
+            romPosition += infoLength; //volume indentifier
+            ReadIso(rom, romPosition, infoLength, out byteInfo);
+            sector16.VolID = ByteConvertInt32(byteInfo);
+            romPosition += infoLength + 8; //volume space size, skipping 8 reserved bytes
+            infoLength = 4;
+            ReadIso(rom, romPosition, infoLength, out byteInfo);
+            sector16.VolSpaceSize = ByteConvertInt32(byteInfo);
+            romPosition += infoLength + 36; //volume set size, skipping 4 bytes that are a mirror of volume spize size
+            infoLength = 2;
+            ReadIso(rom, romPosition, infoLength, out byteInfo);
+            sector16.VolSetSize = ByteConvertInt16(byteInfo);
             //TODO: more information
-
-            sector16Info = methodInformation.ToArray();
+            Export(sector16);
         }
 
-        private void ReadIso(BinaryReader rom, int romPosition, int infoLength, out string information)
+        private void ReadIso(BinaryReader rom, int romPosition, int infoLength, out byte[] byteInfo)
         {
             rom.BaseStream.Position = romPosition;
-            char[] output = rom.ReadChars(infoLength);
-            information = new string(output);
+            byteInfo = rom.ReadBytes(infoLength);
         }
 
-        private void Export(string[] information)
+        private void Export(Sector16 sector16)
         {
             StreamWriter output = new StreamWriter(Properties.Settings.Default.outputPath);
-            output.WriteLine(string.Format("Standard ID: {0}", information[0]));
-            byte[] byteDisplay = Encoding.ASCII.GetBytes(information[1]);
-            output.WriteLine(string.Format("Volume Description Version: {0:X2}", byteDisplay[0]));
-            output.WriteLine(string.Format("System Identifier: {0}", information[2]));
-            output.WriteLine(string.Format("Volume Identifier: {0}", information[3]));
-            byteDisplay = Encoding.ASCII.GetBytes(information[4]);
-            //byte[] volSpaceSize = Encoding.ASCII.GetBytes(information[4]);
-            //todo: figure out vo
-            output.WriteLine(string.Format("Volume Space Size: {0}", "WIP, data in array unsure how to format human readable" ));
+            output.WriteLine(string.Format("Volume Descriptor Type: {0:X2}", sector16.VolDescType));
+            output.WriteLine(string.Format("Standard ID: {0}", sector16.stdID));
+            output.WriteLine(string.Format("Volume Description Version: {0:X2}", sector16.VolDescVer));
+            output.WriteLine(string.Format("System Identifier: {0}", sector16.SysID));
+            output.WriteLine(string.Format("Volume Identifier: {0}", sector16.VolID));
+            output.WriteLine(string.Format("Volume Space Size: {0}", sector16.VolSpaceSize));
+            output.WriteLine(string.Format("Volume Set Size: {0:X4}", sector16.VolSetSize));
             //TODO: a lot more of this
             output.Close();
         }
 
+        private string ByteConvertString(byte[] byteInfo)
+        {
+            return Encoding.Default.GetString(byteInfo);
+        }
+
+        private int ByteConvertInt32(byte[] byteInfo)
+        {
+            return BitConverter.ToInt32(byteInfo, 0);
+        }
+
+        private Int16 ByteConvertInt16(byte[] byteInfo)
+        {
+            return BitConverter.ToInt16(byteInfo, 0);
+        }
+
+        public class Sector16
+        {
+            public byte VolDescType;
+            public string stdID;
+            public byte VolDescVer;
+            public string SysID;
+            public Int32 VolID;
+            public Int32 VolSpaceSize;
+            public Int16 VolSetSize;
+        }
+
+
         //notes repository
+
+        //Open sector file as cd sector size 2352
+
+        //volume space size, number of logical blocks, 2x32bit
+        //5A D1 01 00, 00 01 D1 5A
+        //90 209 1 0 
+
+        //1,523,646,720
+        //119130, first one is little endian, second is big endian
 
         //sector 4: license info
         //sectors 5-11: playstation logo (used to compare with the bios as a piracy check)
@@ -131,15 +179,6 @@ namespace ISOIdentifier
 
         //this is an idea of making a custom multi variable type list to store the specific data of the iso sector in the right formats
         //not used currently
-        public interface isoInformationList { }
-        public class isoInformation : isoInformationList
-        {
-            public byte VolDescType;
-            public string stdID;
-            public byte VolDescVer;
-
-        }
-
 
     }
 }
