@@ -13,7 +13,7 @@ namespace ISOIdentifier
 {
     public partial class Form1 : Form
     {
-
+        //Open sector file as cd sector size 2352
         public Form1()
         {
             InitializeComponent();
@@ -23,7 +23,7 @@ namespace ISOIdentifier
         private void btn_Open_Click(object sender, EventArgs e)
         {
             BinaryReader rom = new BinaryReader(File.OpenRead(Properties.Settings.Default.romPath));
-            BigDataExtract(rom, out string[] sector16Info);
+            Sector16Extract(rom, out string[] sector16Info);
             Export(sector16Info);
         }
 
@@ -56,13 +56,11 @@ namespace ISOIdentifier
             lbl_OutputLocation.Text = Properties.Settings.Default.outputPath;
         }
 
-        private void BigDataExtract(BinaryReader rom, out string[] sector16Info)
+        private void Sector16Extract(BinaryReader rom, out string[] sector16Info)
         {
             //starting variables
             List<string> methodInformation = new List<string>();
-            int romPosition = 0x9300; //sector 16 TODO:start at sector 4 to check what region it is based on license string to export
-            //TODO: testing, delete later
-            romPosition = 0x0;
+            int romPosition = 0x9300;
             string information = "";
             int infoLength = 0;
 
@@ -71,13 +69,23 @@ namespace ISOIdentifier
             infoLength = 5;
             ReadIso(rom, romPosition, infoLength, out information);
             methodInformation.Add(information);
-            romPosition += infoLength;
+            romPosition += infoLength; //volume descriptor version
             infoLength = 1;
             ReadIso(rom, romPosition, infoLength, out information);
             methodInformation.Add(information);
+            romPosition += 2; // system identifier
+            infoLength = 32;
+            ReadIso(rom, romPosition, infoLength, out information);
+            methodInformation.Add(information);
+            romPosition += infoLength;//volume indentifier?
+            ReadIso(rom, romPosition, infoLength, out information);
+            methodInformation.Add(information);
+            romPosition += infoLength + 8;
+            infoLength = 8;
+            ReadIso(rom, romPosition, infoLength, out information);
+            methodInformation.Add(information);
             //TODO: more information
-            
-            //assigning list to out array
+
             sector16Info = methodInformation.ToArray();
         }
 
@@ -92,8 +100,14 @@ namespace ISOIdentifier
         {
             StreamWriter output = new StreamWriter(Properties.Settings.Default.outputPath);
             output.WriteLine(string.Format("Standard ID: {0}", information[0]));
-            byte[] version = Encoding.ASCII.GetBytes(information[1]);
-            output.WriteLine(string.Format("Volume Description Version: {0:X2}", version[0]));
+            byte[] byteDisplay = Encoding.ASCII.GetBytes(information[1]);
+            output.WriteLine(string.Format("Volume Description Version: {0:X2}", byteDisplay[0]));
+            output.WriteLine(string.Format("System Identifier: {0}", information[2]));
+            output.WriteLine(string.Format("Volume Identifier: {0}", information[3]));
+            byteDisplay = Encoding.ASCII.GetBytes(information[4]);
+            //byte[] volSpaceSize = Encoding.ASCII.GetBytes(information[4]);
+            //todo: figure out vo
+            output.WriteLine(string.Format("Volume Space Size: {0}", "WIP, data in array unsure how to format human readable" ));
             //TODO: a lot more of this
             output.Close();
         }
