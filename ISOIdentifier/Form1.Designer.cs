@@ -39,6 +39,8 @@
             this.btn_BinLocation = new System.Windows.Forms.Button();
             this.btn_Output = new System.Windows.Forms.Button();
             this.fbd_Output = new System.Windows.Forms.FolderBrowserDialog();
+            this.lbl_Status = new System.Windows.Forms.Label();
+            this.lbl_desc_Status = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // btn_Open
@@ -135,11 +137,31 @@
             this.btn_Output.UseVisualStyleBackColor = true;
             this.btn_Output.Click += new System.EventHandler(this.btn_Output_Click);
             // 
+            // lbl_Status
+            // 
+            this.lbl_Status.AutoSize = true;
+            this.lbl_Status.Location = new System.Drawing.Point(142, 182);
+            this.lbl_Status.Name = "lbl_Status";
+            this.lbl_Status.Size = new System.Drawing.Size(43, 13);
+            this.lbl_Status.TabIndex = 10;
+            this.lbl_Status.Text = "[Status]";
+            // 
+            // lbl_desc_Status
+            // 
+            this.lbl_desc_Status.AutoSize = true;
+            this.lbl_desc_Status.Location = new System.Drawing.Point(105, 182);
+            this.lbl_desc_Status.Name = "lbl_desc_Status";
+            this.lbl_desc_Status.Size = new System.Drawing.Size(40, 13);
+            this.lbl_desc_Status.TabIndex = 11;
+            this.lbl_desc_Status.Text = "Status:";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(751, 483);
+            this.Controls.Add(this.lbl_desc_Status);
+            this.Controls.Add(this.lbl_Status);
             this.Controls.Add(this.btn_Output);
             this.Controls.Add(this.btn_BinLocation);
             this.Controls.Add(this.lbl_OutputLocation);
@@ -171,6 +193,8 @@
         private System.Windows.Forms.Button btn_BinLocation;
         private System.Windows.Forms.Button btn_Output;
         private System.Windows.Forms.FolderBrowserDialog fbd_Output;
+        private System.Windows.Forms.Label lbl_Status;
+        private System.Windows.Forms.Label lbl_desc_Status;
     }
 }
 

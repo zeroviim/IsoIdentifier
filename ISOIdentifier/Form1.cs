@@ -23,6 +23,7 @@ namespace ISOIdentifier
         {
             BinaryReader rom = new BinaryReader(File.OpenRead(Properties.Settings.Default.romPath));
             Sector16 Sector16 = new Sector16();
+            lbl_Status.Text = "Extracting Information..";
             Sector16Extract(rom, Sector16);
         }
 
@@ -76,7 +77,7 @@ namespace ISOIdentifier
             romPosition += 0x18;//volume descriptor type
             infoLength = 1;
             ReadIso(rom, romPosition, infoLength, out byteInfo);
-            sector16.VolDescType = byteInfo[0];
+            sector16.volDescType = byteInfo[0];
             romPosition++; //standard identifier
             infoLength = 5;
             ReadIso(rom, romPosition, infoLength, out byteInfo);
@@ -84,44 +85,116 @@ namespace ISOIdentifier
             romPosition += infoLength; //volume descriptor version
             infoLength = 1;
             ReadIso(rom, romPosition, infoLength, out byteInfo);
-            sector16.VolDescVer = byteInfo[0];
+            sector16.volDescVer = byteInfo[0];
             romPosition += 2; //system identifier
             infoLength = 32;
             ReadIso(rom, romPosition, infoLength, out byteInfo);
-            sector16.SysID = ByteConvertString(byteInfo);
+            sector16.sysID = ByteConvertString(byteInfo);
             romPosition += infoLength; //volume indentifier
             ReadIso(rom, romPosition, infoLength, out byteInfo);
-            sector16.VolID = ByteConvertInt32(byteInfo);
+            sector16.volID = ByteConvertInt32(byteInfo);
             romPosition += infoLength + 8; //volume space size, skipping 8 reserved bytes
             infoLength = 4;
             ReadIso(rom, romPosition, infoLength, out byteInfo);
-            sector16.VolSpaceSize = ByteConvertInt32(byteInfo);
-            romPosition += infoLength + 36; //volume set size, skipping 4 bytes that are a mirror of volume spize size
+            sector16.volSpaceSize = ByteConvertInt32(byteInfo);
+            romPosition += (infoLength * 2) + 32; //volume set size, skipping 4 bytes that are a mirror of volume spize size
             infoLength = 2;
             ReadIso(rom, romPosition, infoLength, out byteInfo);
-            sector16.VolSetSize = ByteConvertInt16(byteInfo);
+            sector16.volSetSize = ByteConvertInt16(byteInfo);
+            romPosition += (infoLength * 2); //volume sequence number
+            infoLength = 2;
+            ReadIso(rom, romPosition, infoLength, out byteInfo);
+            sector16.volSeqNum = ByteConvertInt16(byteInfo);
+            romPosition += (infoLength * 2); //logical block size in bytes
+            infoLength = 2;
+            ReadIso(rom, romPosition, infoLength, out byteInfo);
+            sector16.logicalBlockSize = ByteConvertInt16(byteInfo);
+            romPosition += (infoLength * 2); //path table size
+            infoLength = 4;
+            ReadIso(rom, romPosition, infoLength, out byteInfo);
+            sector16.pathTableSize = ByteConvertInt32(byteInfo);
+            romPosition += (infoLength * 2); //path table 1 block number
+            infoLength = 4;
+            ReadIso(rom, romPosition, infoLength, out byteInfo);
+            sector16.pathTable1BlockNo = ByteConvertInt32(byteInfo);
+            romPosition += infoLength; //path table 2 block number
+            ReadIso(rom, romPosition, infoLength, out byteInfo);
+            sector16.pathTable2BlockNo = ByteConvertInt32(byteInfo);
+            romPosition += infoLength; //path table 3 block number
+            ReadIso(rom, romPosition, infoLength, out byteInfo);
+            sector16.pathTable3BlockNo = ByteConvertInt32(byteInfo);
+            romPosition += infoLength; //path table 4 block number
+            ReadIso(rom, romPosition, infoLength, out byteInfo);
+            sector16.pathTable4BlockNo = ByteConvertInt32(byteInfo);
+            romPosition += 38; //vol set id, root directory record is its own method
+            infoLength = 128;
+            ReadIso(rom, romPosition, infoLength, out byteInfo);
+            sector16.volSetId = ByteConvertString(byteInfo);
+            romPosition += infoLength; //publisher id
+            ReadIso(rom, romPosition, infoLength, out byteInfo);
+            sector16.publishId = ByteConvertString(byteInfo);
+            romPosition += infoLength; //data prep id
+            ReadIso(rom, romPosition, infoLength, out byteInfo);
+            sector16.dataPrepId = ByteConvertString(byteInfo);
+            romPosition += infoLength; //application id
+            ReadIso(rom, romPosition, infoLength, out byteInfo);
+            sector16.applicationId = ByteConvertString(byteInfo);
+            romPosition += infoLength; //copyright filename
+            infoLength = 37;
+            ReadIso(rom, romPosition, infoLength, out byteInfo);
+            sector16.copyrightFilename = ByteConvertString(byteInfo);
+            romPosition += infoLength; //abstract filename
+            ReadIso(rom, romPosition, infoLength, out byteInfo);
+            sector16.abstractFilename = ByteConvertString(byteInfo);
+            romPosition += infoLength; //bibliographic filename
+            ReadIso(rom, romPosition, infoLength, out byteInfo);
+            sector16.biblioFilename = ByteConvertString(byteInfo);
+            romPosition += infoLength; //volume creation timestamp
+            infoLength = 17;
+            ReadIso(rom, romPosition, infoLength, out byteInfo);
+            sector16.volCreationTimestamp2 = ByteConvertDateTime(byteInfo);
+            //sector16.volCreationTimestamp = ByteConvertString(byteInfo);
+
+            //len 34 = 21h
+
             //TODO: more information
-            Export(sector16);
+            lbl_Status.Text = "Finished extracting, outputting file..";
+            Sector16InfoExport(sector16);
+        }
+
+        private void Sector16InfoExport(Sector16 sector16)
+        {
+            StreamWriter output = new StreamWriter(Properties.Settings.Default.outputPath);
+            output.WriteLine(string.Format("Volume Descriptor Type: {0:X2}", sector16.volDescType));
+            output.WriteLine(string.Format("Standard ID: {0}", sector16.stdID));
+            output.WriteLine(string.Format("Volume Description Version: {0:X2}", sector16.volDescVer));
+            output.WriteLine(string.Format("System Identifier: {0}", sector16.sysID));
+            output.WriteLine(string.Format("Volume Identifier: {0}", sector16.volID));
+            output.WriteLine(string.Format("Volume Space Size: {0}", sector16.volSpaceSize));
+            output.WriteLine(string.Format("Volume Set Size: {0:X4}h, {0}", sector16.volSetSize));
+            output.WriteLine(string.Format("Volume Sequence Number: {0:X4}h, {0}", sector16.volSeqNum));
+            output.WriteLine(string.Format("Logical Block Size: {0:X4}h, {0} bytes", sector16.logicalBlockSize));
+            output.WriteLine(string.Format("Path Table Size: {0:X8}h, {0} bytes", sector16.pathTableSize));
+            output.WriteLine(string.Format("Path Table 1 Block Number: {0:X8}h", sector16.pathTable1BlockNo));
+            output.WriteLine(string.Format("Path Table 2 Block Number: {0:X8}h", sector16.pathTable2BlockNo));
+            output.WriteLine(string.Format("Path Table 3 Block Number: {0:X8}h", sector16.pathTable3BlockNo));
+            output.WriteLine(string.Format("Path Table 4 Block Number: {0:X8}h", sector16.pathTable4BlockNo));
+            output.WriteLine(string.Format("Volume Set Identifier: {0}", sector16.volSetId));
+            output.WriteLine(string.Format("Publisher Identifier: {0}", sector16.publishId));
+            output.WriteLine(string.Format("Data Preparer Identifier: {0}", sector16.dataPrepId));
+            output.WriteLine(string.Format("Application Identifier: {0}", sector16.applicationId));
+            output.WriteLine(string.Format("Volume Creation Timestamp: {0}", sector16.volCreationTimestamp));
+            output.WriteLine(string.Format("Volume Creation Timestamp: {0:yyyy/MM/dd hh:MM}", sector16.volCreationTimestamp2));
+
+            //TODO: a lot more of this
+            output.Close();
+            lbl_Status.Text = "Export finished!";
         }
 
         private void ReadIso(BinaryReader rom, int romPosition, int infoLength, out byte[] byteInfo)
         {
             rom.BaseStream.Position = romPosition;
             byteInfo = rom.ReadBytes(infoLength);
-        }
-
-        private void Export(Sector16 sector16)
-        {
-            StreamWriter output = new StreamWriter(Properties.Settings.Default.outputPath);
-            output.WriteLine(string.Format("Volume Descriptor Type: {0:X2}", sector16.VolDescType));
-            output.WriteLine(string.Format("Standard ID: {0}", sector16.stdID));
-            output.WriteLine(string.Format("Volume Description Version: {0:X2}", sector16.VolDescVer));
-            output.WriteLine(string.Format("System Identifier: {0}", sector16.SysID));
-            output.WriteLine(string.Format("Volume Identifier: {0}", sector16.VolID));
-            output.WriteLine(string.Format("Volume Space Size: {0}", sector16.VolSpaceSize));
-            output.WriteLine(string.Format("Volume Set Size: {0:X4}", sector16.VolSetSize));
-            //TODO: a lot more of this
-            output.Close();
         }
 
         private string ByteConvertString(byte[] byteInfo)
@@ -139,15 +212,40 @@ namespace ISOIdentifier
             return BitConverter.ToInt16(byteInfo, 0);
         }
 
+        private DateTime ByteConvertDateTime(byte[] byteInfo)
+        {
+            long longVar2 = BitConverter.to
+            long longVar = BitConverter.ToInt64(byteInfo, 0);
+            return new DateTime().AddMilliseconds(longVar);
+            //DateTime tempDT = new DateTime().AddMilliseconds(longVar);
+            //return tempDT.ToString("YYYYMMDDHHMMSSFF");
+        }
+
         public class Sector16
         {
-            public byte VolDescType;
+            public byte volDescType;
             public string stdID;
-            public byte VolDescVer;
-            public string SysID;
-            public Int32 VolID;
-            public Int32 VolSpaceSize;
-            public Int16 VolSetSize;
+            public byte volDescVer;
+            public string sysID;
+            public Int32 volID;
+            public Int32 volSpaceSize;
+            public Int16 volSetSize;
+            public Int16 volSeqNum;
+            public Int16 logicalBlockSize;
+            public Int32 pathTableSize;
+            public Int32 pathTable1BlockNo;
+            public Int32 pathTable2BlockNo;
+            public Int32 pathTable3BlockNo;
+            public Int32 pathTable4BlockNo;
+            public string volSetId;
+            public string publishId;
+            public string dataPrepId;
+            public string applicationId;
+            public string copyrightFilename;
+            public string abstractFilename;
+            public string biblioFilename;
+            public string volCreationTimestamp;
+            public DateTime volCreationTimestamp2;
         }
 
 
