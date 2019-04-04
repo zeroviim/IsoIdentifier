@@ -23,9 +23,13 @@ namespace ISOIdentifier
         private void btn_Open_Click(object sender, EventArgs e)
         {
             BinaryReader rom = new BinaryReader(File.OpenRead(Properties.Settings.Default.romPath));
-            Sector16 Sector16 = new Sector16();
+            Sector16 sector16 = new Sector16();
+            Sector17 sector17 = new Sector17();
+            StreamWriter output = new StreamWriter(Properties.Settings.Default.outputPath);
             lbl_Status.Text = "Extracting Information..";
-            Sector16Extract(rom, Sector16);
+            Sector16Extract(rom, sector16, output);
+            Sector17Extract(rom, sector17, output);
+            output.Close();
         }
 
         private void btn_BinLocation_Click(object sender, EventArgs e)
@@ -66,10 +70,10 @@ namespace ISOIdentifier
             lbl_OutputLocation.Text = Properties.Settings.Default.outputPath;
         }
 
-        private void Sector16Extract(BinaryReader rom, Sector16 sector16)
+        private void Sector16Extract(BinaryReader rom, Sector16 sector16, StreamWriter output)
         {
             //starting variables
-            List<string> methodInformation = new List<string>();
+            //List<string> methodInformation = new List<string>();
             int romPosition = 0x9300;
             byte[] byteInfo;
             int infoLength = 0;
@@ -130,16 +134,16 @@ namespace ISOIdentifier
             romPosition += 38; //vol set id, root directory record is its own method
             infoLength = 128;
             ReadIso(rom, romPosition, infoLength, out byteInfo);
-            sector16.volSetId = ByteConvertString(byteInfo);
+            sector16.volSetID = ByteConvertString(byteInfo);
             romPosition += infoLength; //publisher id
             ReadIso(rom, romPosition, infoLength, out byteInfo);
-            sector16.publishId = ByteConvertString(byteInfo);
+            sector16.publishID = ByteConvertString(byteInfo);
             romPosition += infoLength; //data prep id
             ReadIso(rom, romPosition, infoLength, out byteInfo);
-            sector16.dataPrepId = ByteConvertString(byteInfo);
+            sector16.dataPrepID = ByteConvertString(byteInfo);
             romPosition += infoLength; //application id
             ReadIso(rom, romPosition, infoLength, out byteInfo);
-            sector16.applicationId = ByteConvertString(byteInfo);
+            sector16.applicationID = ByteConvertString(byteInfo);
             romPosition += infoLength; //copyright filename
             infoLength = 37;
             ReadIso(rom, romPosition, infoLength, out byteInfo);
@@ -184,12 +188,31 @@ namespace ISOIdentifier
             ReadIso(rom, romPosition, infoLength, out byteInfo);
             sector16.cdxaIdSig = ByteConvertString(byteInfo);
             lbl_Status.Text = "Finished extracting, outputting file..";
-            Sector16InfoExport(sector16);
+            Sector16InfoExport(sector16, output);
         }
 
-        private void Sector16InfoExport(Sector16 sector16)
+        private void Sector17Extract(BinaryReader rom, Sector17 sector17, StreamWriter output)
         {
-            StreamWriter output = new StreamWriter(Properties.Settings.Default.outputPath);
+            ///List<string> methodInformation = new List<string>();
+            int romPosition = 0x9C48; //vol desc type
+            byte[] byteInfo;
+            int infoLength = 1;
+
+            ReadIso(rom, romPosition, infoLength, out byteInfo);
+            sector17.volDescType = byteInfo[0];
+            romPosition++; //standard identifier
+            infoLength = 5;
+            ReadIso(rom, romPosition, infoLength, out byteInfo);
+            sector17.stdID = ByteConvertString(byteInfo);
+            romPosition += infoLength; //terminator version
+            infoLength = 1;
+            ReadIso(rom, romPosition, infoLength, out byteInfo);
+            sector17.terminatorVer = byteInfo[0];
+            Sector17InfoExport(sector17, output);
+        }
+
+        private void Sector16InfoExport(Sector16 sector16, StreamWriter output)
+        {
             output.WriteLine("Sector 16 Information");
             output.WriteLine("----------");
             output.WriteLine(string.Format("Volume Descriptor Type: {0:X2}", sector16.volDescType));
@@ -206,10 +229,10 @@ namespace ISOIdentifier
             output.WriteLine(string.Format("Path Table 2 Block Number: {0:X8}h", sector16.pathTable2BlockNo));
             output.WriteLine(string.Format("Path Table 3 Block Number: {0:X8}h", sector16.pathTable3BlockNo));
             output.WriteLine(string.Format("Path Table 4 Block Number: {0:X8}h", sector16.pathTable4BlockNo));
-            output.WriteLine(string.Format("Volume Set Identifier: {0}", sector16.volSetId));
-            output.WriteLine(string.Format("Publisher Identifier: {0}", sector16.publishId));
-            output.WriteLine(string.Format("Data Preparer Identifier: {0}", sector16.dataPrepId));
-            output.WriteLine(string.Format("Application Identifier: {0}", sector16.applicationId));
+            output.WriteLine(string.Format("Volume Set Identifier: {0}", sector16.volSetID));
+            output.WriteLine(string.Format("Publisher Identifier: {0}", sector16.publishID));
+            output.WriteLine(string.Format("Data Preparer Identifier: {0}", sector16.dataPrepID));
+            output.WriteLine(string.Format("Application Identifier: {0}", sector16.applicationID));
             output.WriteLine(string.Format("Volume Creation Timestamp: {0:yyyy-MM-dd HH:mm:ss:ff}", sector16.volCreationTimestamp));
             output.WriteLine(string.Format("Volume Modification Timestamp: {0:yyyy-MM-dd HH:mm:ss:ff}", sector16.volModifyTimestamp));
             output.WriteLine(string.Format("Volume Expiration Timestamp: {0:yyyy-MM-dd HH:mm:ss:ff}", sector16.volExpireTimestamp));
@@ -217,11 +240,18 @@ namespace ISOIdentifier
             output.WriteLine(string.Format("File Structure Version: {0:X2}", sector16.fileStructVer));
             output.WriteLine(string.Format("Reserved For Future: {0:X2}", sector16.reservedForFuture));
             output.WriteLine(string.Format("CD-XA Identifying Signature: {0}", sector16.cdxaIdSig));
-
-
-            //TODO: a lot more of this
-            output.Close();
             lbl_Status.Text = "Export finished!";
+        }
+
+        private void Sector17InfoExport(Sector17 sector17, StreamWriter output)
+        {
+
+            output.WriteLine("");
+            output.WriteLine("Sector 17 Information");
+            output.WriteLine("----------");
+            output.WriteLine(string.Format("Volume Descriptor Type: {0:X2}", sector17.volDescType));
+            output.WriteLine(string.Format("Standard ID: {0}", sector17.stdID));
+            output.Write(string.Format("Terminator Version: {0}", sector17.terminatorVer));
         }
 
         private void ReadIso(BinaryReader rom, int romPosition, int infoLength, out byte[] byteInfo)
@@ -275,10 +305,10 @@ namespace ISOIdentifier
             public Int32 pathTable2BlockNo;
             public Int32 pathTable3BlockNo;
             public Int32 pathTable4BlockNo;
-            public string volSetId;
-            public string publishId;
-            public string dataPrepId;
-            public string applicationId;
+            public string volSetID;
+            public string publishID;
+            public string dataPrepID;
+            public string applicationID;
             public string copyrightFilename;
             public string abstractFilename;
             public string biblioFilename;
@@ -292,6 +322,12 @@ namespace ISOIdentifier
             public string cdxaIdSig;
         }
 
+        public class Sector17
+        {
+            public byte volDescType;
+            public string stdID;
+            public byte terminatorVer;
+        }
 
         //notes repository
 
