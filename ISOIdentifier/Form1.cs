@@ -73,7 +73,6 @@ namespace ISOIdentifier
         private void Sector16Extract(BinaryReader rom, Sector16 sector16, StreamWriter output)
         {
             //starting variables
-            //List<string> methodInformation = new List<string>();
             int romPosition = 0x9300;
             byte[] byteInfo;
             int infoLength = 0;
@@ -127,9 +126,11 @@ namespace ISOIdentifier
             sector16.pathTable2BlockNo = ByteConvertInt32(byteInfo);
             romPosition += infoLength; //path table 3 block number
             ReadIso(rom, romPosition, infoLength, out byteInfo);
+            Array.Reverse(byteInfo);
             sector16.pathTable3BlockNo = ByteConvertInt32(byteInfo);
             romPosition += infoLength; //path table 4 block number
             ReadIso(rom, romPosition, infoLength, out byteInfo);
+            Array.Reverse(byteInfo);
             sector16.pathTable4BlockNo = ByteConvertInt32(byteInfo);
             romPosition += 38; //vol set id, root directory record is its own method
             infoLength = 128;
@@ -193,7 +194,6 @@ namespace ISOIdentifier
 
         private void Sector17Extract(BinaryReader rom, Sector17 sector17, StreamWriter output)
         {
-            ///List<string> methodInformation = new List<string>();
             int romPosition = 0x9C48; //vol desc type
             byte[] byteInfo;
             int infoLength = 1;
@@ -225,10 +225,10 @@ namespace ISOIdentifier
             output.WriteLine(string.Format("Volume Sequence Number: {0:X4}h, {0}", sector16.volSeqNum));
             output.WriteLine(string.Format("Logical Block Size: {0:X4}h, {0} bytes", sector16.logicalBlockSize));
             output.WriteLine(string.Format("Path Table Size: {0:X8}h, {0} bytes", sector16.pathTableSize));
-            output.WriteLine(string.Format("Path Table 1 Block Number: {0:X8}h", sector16.pathTable1BlockNo));
-            output.WriteLine(string.Format("Path Table 2 Block Number: {0:X8}h", sector16.pathTable2BlockNo));
-            output.WriteLine(string.Format("Path Table 3 Block Number: {0:X8}h", sector16.pathTable3BlockNo));
-            output.WriteLine(string.Format("Path Table 4 Block Number: {0:X8}h", sector16.pathTable4BlockNo));
+            output.WriteLine(string.Format("Path Table 1 Block Number: {0}", sector16.pathTable1BlockNo));
+            output.WriteLine(string.Format("Path Table 2 Block Number: {0}", sector16.pathTable2BlockNo));
+            output.WriteLine(string.Format("Path Table 3 Block Number: {0}", sector16.pathTable3BlockNo));
+            output.WriteLine(string.Format("Path Table 4 Block Number: {0}", sector16.pathTable4BlockNo));
             output.WriteLine(string.Format("Volume Set Identifier: {0}", sector16.volSetID));
             output.WriteLine(string.Format("Publisher Identifier: {0}", sector16.publishID));
             output.WriteLine(string.Format("Data Preparer Identifier: {0}", sector16.dataPrepID));
