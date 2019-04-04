@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Globalization;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
@@ -149,15 +150,39 @@ namespace ISOIdentifier
             romPosition += infoLength; //bibliographic filename
             ReadIso(rom, romPosition, infoLength, out byteInfo);
             sector16.biblioFilename = ByteConvertString(byteInfo);
+            //TODO: need better error display for improper dates/all zero dates, mainly for mod/expire/effect timestamps
             romPosition += infoLength; //volume creation timestamp
-            infoLength = 17;
+            infoLength = 16;
             ReadIso(rom, romPosition, infoLength, out byteInfo);
-            sector16.volCreationTimestamp2 = ByteConvertDateTime(byteInfo);
-            //sector16.volCreationTimestamp = ByteConvertString(byteInfo);
-
-            //len 34 = 21h
-
-            //TODO: more information
+            sector16.volCreationTimestamp = ByteConvertDateTime(byteInfo);
+            //TODO: unsure of how to format timezone byte, seems to just be 00h. Not exported currently
+            romPosition += infoLength; //timezone
+            infoLength = 1;
+            ReadIso(rom, romPosition, infoLength, out byteInfo);
+            sector16.timezone = byteInfo[0];
+            romPosition += infoLength; //volume modification timestamp
+            infoLength = 16;
+            ReadIso(rom, romPosition, infoLength, out byteInfo);
+            sector16.volModifyTimestamp = ByteConvertDateTime(byteInfo);
+            romPosition += infoLength + 1; //volume expiration timestamp
+            infoLength = 16;
+            ReadIso(rom, romPosition, infoLength, out byteInfo);
+            sector16.volExpireTimestamp = ByteConvertDateTime(byteInfo);
+            romPosition += infoLength + 1; //volume effective timestamp
+            infoLength = 16;
+            ReadIso(rom, romPosition, infoLength, out byteInfo);
+            sector16.volEffectTimestamp = ByteConvertDateTime(byteInfo);
+            romPosition += infoLength + 1; //file structure version
+            infoLength = 1;
+            ReadIso(rom, romPosition, infoLength, out byteInfo);
+            sector16.fileStructVer = byteInfo[0];
+            romPosition += infoLength; //reserved for future
+            ReadIso(rom, romPosition, infoLength, out byteInfo);
+            sector16.reservedForFuture = byteInfo[0];
+            romPosition += 142; //cd xa identifying signature, skipping over app use area because 00 filled
+            infoLength = 8;
+            ReadIso(rom, romPosition, infoLength, out byteInfo);
+            sector16.cdxaIdSig = ByteConvertString(byteInfo);
             lbl_Status.Text = "Finished extracting, outputting file..";
             Sector16InfoExport(sector16);
         }
@@ -165,6 +190,8 @@ namespace ISOIdentifier
         private void Sector16InfoExport(Sector16 sector16)
         {
             StreamWriter output = new StreamWriter(Properties.Settings.Default.outputPath);
+            output.WriteLine("Sector 16 Information");
+            output.WriteLine("----------");
             output.WriteLine(string.Format("Volume Descriptor Type: {0:X2}", sector16.volDescType));
             output.WriteLine(string.Format("Standard ID: {0}", sector16.stdID));
             output.WriteLine(string.Format("Volume Description Version: {0:X2}", sector16.volDescVer));
@@ -183,8 +210,14 @@ namespace ISOIdentifier
             output.WriteLine(string.Format("Publisher Identifier: {0}", sector16.publishId));
             output.WriteLine(string.Format("Data Preparer Identifier: {0}", sector16.dataPrepId));
             output.WriteLine(string.Format("Application Identifier: {0}", sector16.applicationId));
-            output.WriteLine(string.Format("Volume Creation Timestamp: {0}", sector16.volCreationTimestamp));
-            output.WriteLine(string.Format("Volume Creation Timestamp: {0:yyyy/MM/dd hh:MM}", sector16.volCreationTimestamp2));
+            output.WriteLine(string.Format("Volume Creation Timestamp: {0:yyyy-MM-dd HH:mm:ss:ff}", sector16.volCreationTimestamp));
+            output.WriteLine(string.Format("Volume Modification Timestamp: {0:yyyy-MM-dd HH:mm:ss:ff}", sector16.volModifyTimestamp));
+            output.WriteLine(string.Format("Volume Expiration Timestamp: {0:yyyy-MM-dd HH:mm:ss:ff}", sector16.volExpireTimestamp));
+            output.WriteLine(string.Format("Volume Effective Timestamp: {0:yyyy-MM-dd HH:mm:ss:ff}", sector16.volEffectTimestamp));
+            output.WriteLine(string.Format("File Structure Version: {0:X2}", sector16.fileStructVer));
+            output.WriteLine(string.Format("Reserved For Future: {0:X2}", sector16.reservedForFuture));
+            output.WriteLine(string.Format("CD-XA Identifying Signature: {0}", sector16.cdxaIdSig));
+
 
             //TODO: a lot more of this
             output.Close();
@@ -214,11 +247,16 @@ namespace ISOIdentifier
 
         private DateTime ByteConvertDateTime(byte[] byteInfo)
         {
-            long longVar2 = BitConverter.to
-            long longVar = BitConverter.ToInt64(byteInfo, 0);
-            return new DateTime().AddMilliseconds(longVar);
-            //DateTime tempDT = new DateTime().AddMilliseconds(longVar);
-            //return tempDT.ToString("YYYYMMDDHHMMSSFF");
+            string strDate = Encoding.Default.GetString(byteInfo);
+            strDate = string.Format("{0}-{1}-{2} {3}:{4}:{5}:{6}", strDate.Substring(0, 4), strDate.Substring(4, 2), strDate.Substring(6, 2), strDate.Substring(8, 2), strDate.Substring(10, 2), strDate.Substring(12, 2), strDate.Substring(14, 2));
+            try
+            {
+                return DateTime.ParseExact(strDate, "yyyy-MM-dd HH:mm:ss:ff", CultureInfo.InvariantCulture);
+            }
+            catch
+            {
+                return DateTime.ParseExact("1000-01-01 01:01:01:01", "yyyy-MM-dd HH:mm:ss:ff", CultureInfo.InvariantCulture);
+            }
         }
 
         public class Sector16
@@ -244,12 +282,28 @@ namespace ISOIdentifier
             public string copyrightFilename;
             public string abstractFilename;
             public string biblioFilename;
-            public string volCreationTimestamp;
-            public DateTime volCreationTimestamp2;
+            public DateTime volCreationTimestamp;
+            public byte timezone;
+            public DateTime volModifyTimestamp;
+            public DateTime volExpireTimestamp;
+            public DateTime volEffectTimestamp;
+            public byte fileStructVer;
+            public byte reservedForFuture;
+            public string cdxaIdSig;
         }
 
 
         //notes repository
+
+        //I dont want to talk about it
+        //return DateTime.Parse(strDate);
+        //return DateTime.ParseExact(strDate, "yyyy-MM-dd HH:mm:ss:ff", CultureInfo.InvariantCulture);
+        //long longVar2 = BitConverter.to
+        //Double longVar = BitConverter.ToDouble(byteInfo, 0);
+        //long longVar = BitConverter.ToInt32(byteInfo, 0);
+        //return new DateTime().AddMilliseconds(longVar);
+        //DateTime tempDT = new DateTime().AddMilliseconds(longVar);
+        //return tempDT.ToString("YYYYMMDDHHMMSSFF");
 
         //Open sector file as cd sector size 2352
 
@@ -274,9 +328,8 @@ namespace ISOIdentifier
 
         //first 00 02 00 02 (0C-0F at start of sector)
         //max 26 30 29 02 may be 119129 not 119130(last sector according to hxd)
-
-        //this is an idea of making a custom multi variable type list to store the specific data of the iso sector in the right formats
-        //not used currently
+        //for root directory later
+        //len 34 = 21h
 
     }
 }
