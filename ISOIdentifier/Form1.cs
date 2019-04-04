@@ -126,7 +126,7 @@ namespace ISOIdentifier
             sector16.pathTable2BlockNo = ByteConvertInt32(byteInfo);
             romPosition += infoLength; //path table 3 block number
             ReadIso(rom, romPosition, infoLength, out byteInfo);
-            Array.Reverse(byteInfo);
+            Array.Reverse(byteInfo); //big endian
             sector16.pathTable3BlockNo = ByteConvertInt32(byteInfo);
             romPosition += infoLength; //path table 4 block number
             ReadIso(rom, romPosition, infoLength, out byteInfo);
@@ -188,7 +188,7 @@ namespace ISOIdentifier
             infoLength = 8;
             ReadIso(rom, romPosition, infoLength, out byteInfo);
             sector16.cdxaIdSig = ByteConvertString(byteInfo);
-            lbl_Status.Text = "Finished extracting, outputting file..";
+            lbl_Status.Text = "Finished extracting sector 16, outputting to file..";
             Sector16InfoExport(sector16, output);
         }
 
@@ -208,6 +208,7 @@ namespace ISOIdentifier
             infoLength = 1;
             ReadIso(rom, romPosition, infoLength, out byteInfo);
             sector17.terminatorVer = byteInfo[0];
+            lbl_Status.Text = "Finished extracting sector 17, outputting to file..";
             Sector17InfoExport(sector17, output);
         }
 
@@ -240,7 +241,7 @@ namespace ISOIdentifier
             output.WriteLine(string.Format("File Structure Version: {0:X2}", sector16.fileStructVer));
             output.WriteLine(string.Format("Reserved For Future: {0:X2}", sector16.reservedForFuture));
             output.WriteLine(string.Format("CD-XA Identifying Signature: {0}", sector16.cdxaIdSig));
-            lbl_Status.Text = "Export finished!";
+            lbl_Status.Text = "Export of sector 16 information finished!";
         }
 
         private void Sector17InfoExport(Sector17 sector17, StreamWriter output)
@@ -252,6 +253,7 @@ namespace ISOIdentifier
             output.WriteLine(string.Format("Volume Descriptor Type: {0:X2}", sector17.volDescType));
             output.WriteLine(string.Format("Standard ID: {0}", sector17.stdID));
             output.Write(string.Format("Terminator Version: {0}", sector17.terminatorVer));
+            lbl_Status.Text = "Export of sector 17 information finished!";
         }
 
         private void ReadIso(BinaryReader rom, int romPosition, int infoLength, out byte[] byteInfo)
@@ -327,6 +329,20 @@ namespace ISOIdentifier
             public byte volDescType;
             public string stdID;
             public byte terminatorVer;
+        }
+        //TODO: these
+        public class PathTable
+        {
+            public byte lengthDirName;
+            public byte extAttRecLen;
+            public Int32 dirLogicBlockNo;
+            public Int16 parentDirNo;
+
+        }
+
+        public class DirectoryDescriptor
+        {
+
         }
 
         //notes repository
